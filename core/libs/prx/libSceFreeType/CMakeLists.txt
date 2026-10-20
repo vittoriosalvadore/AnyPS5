@@ -1,6 +1,7 @@
 add_library(libSceFreeType SHARED EXCLUDE_FROM_ALL
         Export.cpp
         src/GuestObjects.cpp
+        src/Sizing.cpp
 )
 target_include_directories(libSceFreeType PRIVATE ${LIBS_INCLUDE_DIR})
 target_link_libraries(libSceFreeType PRIVATE freetype)
@@ -10,6 +11,16 @@ endif()
 configure_windows_unwind(libSceFreeType)
 
 if(BUILD_TESTING)
+    add_test_executable(guest_freetype_sizing_tests ${LIBS_INCLUDE_DIR}/tests/GuestFreeTypeSizing.cpp)
+    target_include_directories(guest_freetype_sizing_tests PRIVATE ${LIBS_INCLUDE_DIR})
+    target_link_libraries(guest_freetype_sizing_tests PRIVATE libSceFreeType freetype libc)
+    configure_windows_unwind(guest_freetype_sizing_tests)
+    add_test(NAME guest_freetype_sizing COMMAND guest_freetype_sizing_tests)
+    set_tests_properties(guest_freetype_sizing PROPERTIES TIMEOUT 30)
+    if(WIN32)
+        set_tests_properties(guest_freetype_sizing PROPERTIES ENVIRONMENT_MODIFICATION
+            "PATH=path_list_prepend:$<TARGET_FILE_DIR:libSceFreeType>")
+    endif()
     add_test_executable(guest_freetype_tests ${LIBS_INCLUDE_DIR}/tests/GuestFreeType.cpp)
     target_include_directories(guest_freetype_tests PRIVATE ${LIBS_INCLUDE_DIR})
     target_link_libraries(guest_freetype_tests PRIVATE libSceFreeType freetype libc)
